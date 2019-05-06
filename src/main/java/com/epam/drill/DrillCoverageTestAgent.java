@@ -3,6 +3,7 @@ package com.epam.drill;
 import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.CtMethod;
+import javassist.LoaderClassPath;
 
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.Instrumentation;
@@ -34,7 +35,9 @@ public class DrillCoverageTestAgent {
                                 return cc.toBytecode();
                             } else return null;
                         } else if (loader != null) {
-                            CtClass cc = ClassPool.getDefault().get(className.replace("/", "."));
+                            ClassPool cp = ClassPool.getDefault();
+                            cp.appendClassPath(new LoaderClassPath(loader));
+                            CtClass cc = cp.get(className.replace("/", "."));
                             ArrayList<CtMethod> ctMethods = new ArrayList<>();
                             for (CtMethod m : cc.getMethods()) {
                                 for (Object an : m.getAnnotations()) {
