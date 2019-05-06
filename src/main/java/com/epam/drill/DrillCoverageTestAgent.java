@@ -38,7 +38,8 @@ public class DrillCoverageTestAgent {
                             ArrayList<CtMethod> ctMethods = new ArrayList<>();
                             for (CtMethod m : cc.getMethods()) {
                                 for (Object an : m.getAnnotations()) {
-                                    if (an.toString().equals("@org.junit.Test")) {
+                                    if (an.toString().equals("@org.junit.jupiter.api.Test") ||
+                                            an.toString().equals("@org.junit.jupiter.params.ParameterizedTest")){
                                         ctMethods.add(m);
                                         break;
                                     }
@@ -49,6 +50,7 @@ public class DrillCoverageTestAgent {
                                 for (CtMethod m : ctMethods) {
                                     m.insertBefore("com.epam.drill.GlobalSpy.self().setTestName(\"" + m.getName() + "\");");
                                 }
+                                System.out.println("_____________" + className);
                                 return cc.toBytecode();
                             } else return null;
                         } else return null;
