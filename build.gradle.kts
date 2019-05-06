@@ -16,8 +16,10 @@ dependencies {
     compile("org.javassist:javassist:3.18.1-GA")
     implementation("org.apache.httpcomponents:httpclient:4.3.6")
     implementation(project(":runtime"))
-    testImplementation(kotlin("test-junit"))
+    implementation(kotlin("stdlib-jdk8"))
+    testImplementation("org.junit.jupiter:junit-jupiter:5.4.2")
 }
+
 
 tasks.withType<KotlinCompile> {
     kotlinOptions.jvmTarget = "1.8"
@@ -42,5 +44,9 @@ tasks {
     named<Test>("test") {
         dependsOn(jar)
         setJvmArgs(listOf("-javaagent:${jar.get().archivePath}=autoTestScope"))
+        useJUnitPlatform()
+        testLogging {
+            events("passed", "skipped", "failed")
+        }
     }
 }

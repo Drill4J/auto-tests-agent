@@ -3,11 +3,11 @@ package com.epam.drill
 import com.sun.net.httpserver.HttpServer
 import org.apache.http.client.methods.HttpPost
 import org.apache.http.impl.client.HttpClients
-import org.junit.AfterClass
-import org.junit.BeforeClass
-import org.junit.Test
+import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Test
 import java.net.InetSocketAddress
-import kotlin.test.assertEquals
 
 const val headerName = "DrillTestName"
 
@@ -32,13 +32,13 @@ class Tests {
             port = httpServer.address.port
         }
 
-        @BeforeClass
+        @BeforeAll
         @JvmStatic
         fun startSimpleEchoServer() {
             httpServer.start()
         }
 
-        @AfterClass
+        @AfterAll
         @JvmStatic
         fun destroySimpleEchoServer() {
             httpServer.stop(1)
