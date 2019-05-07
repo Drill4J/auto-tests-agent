@@ -9,7 +9,7 @@ import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import java.net.InetSocketAddress
 
-const val headerName = "DrillTestName"
+const val headerName = "drill-test-name"
 
 class Tests {
 

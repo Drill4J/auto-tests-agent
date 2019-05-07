@@ -39,7 +39,7 @@ public class GlobalSpy {
     }
 
     private String generateSpyHeaders() {
-        return "DrillTestName: " + getTestName() + "\n" + "DrillSessionId: " + drillSession;
+        return "drill-test-name: " + getTestName() + "\n" + "drill-session-id: " + drillSession;
     }
 
     public int calculateLength(int len) {
