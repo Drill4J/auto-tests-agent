@@ -4,21 +4,29 @@ import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.CtMethod;
 import javassist.LoaderClassPath;
+import org.jetbrains.annotations.NotNull;
 
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.Instrumentation;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.security.ProtectionDomain;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 @SuppressWarnings("Convert2Lambda")
 public class DrillCoverageTestAgent {
-    public static void premain(String drillSession, Instrumentation instrumentation) {
-       if(drillSession == null){
-           System.out.println("Please provide the scopeId in agentArgs\n" +
-                   "-javaagent:/path-to-agent=scopeId");
-           return;
-       }
-        GlobalSpy.self().setSessionId(drillSession);
+    public static void premain(String args, Instrumentation instrumentation) {
+        HashMap<String, String> paramMap = parseParams(args);
+        String sessionId = paramMap.get("sessionId");
+        String adminUrl = paramMap.get("adminUrl");
+        String agentId = paramMap.get("agentId");
+
+        GlobalSpy.self().setSessionId(sessionId);
+
+
         instrumentation.addTransformer(new ClassFileTransformer() {
             @Override
             public byte[] transform(ClassLoader loader, String className, Class<?> classBeingRedefined, ProtectionDomain protectionDomain, byte[] classfileBuffer) {
@@ -42,7 +50,7 @@ public class DrillCoverageTestAgent {
                             for (CtMethod m : cc.getMethods()) {
                                 for (Object an : m.getAnnotations()) {
                                     if (an.toString().equals("@org.junit.jupiter.api.Test") ||
-                                            an.toString().equals("@org.junit.jupiter.params.ParameterizedTest")){
+                                            an.toString().equals("@org.junit.jupiter.params.ParameterizedTest")) {
                                         ctMethods.add(m);
                                         break;
                                     }
@@ -66,6 +74,78 @@ public class DrillCoverageTestAgent {
             }
         });
 
+        sendAction(agentId, "START", sessionId, adminUrl);
+        Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+            @Override
+            public void run() {
+                sendAction(agentId, "STOP", sessionId, adminUrl);
+            }
+        }));
 
+    }
+
+    @NotNull
+    private static HashMap<String, String> parseParams(String drillSession) {
+        HashMap<String, String> paramMap = new HashMap<>();
+        if (drillSession == null) {
+            throw new IllegalArgumentException("Agent should have valid parameters. See spec");
+        }
+        String[] paramGroups = drillSession.split(",");
+        validateParamsGroups(paramGroups);
+        for (String paramLine : paramGroups) {
+            String[] paramPair = paramLine.split("=");
+            validateParamPair(paramPair);
+            paramMap.put(paramPair[0], paramPair[1]);
+        }
+        return paramMap;
+    }
+
+    private static void validateParamPair(String[] paramPair) {
+        if (paramPair.length != 2)
+            throw new IllegalArgumentException("wrong agent parameters");
+    }
+
+    private static void validateParamsGroups(String[] paramGroups) {
+        if (paramGroups.length < 3)
+            throw new IllegalArgumentException("Agent should have 3 parameters. SessionId, AdminUrl and AgentName");
+    }
+
+    private static void sendAction(String agentId, String action, String sessionId, String adminUrl) {
+        try {
+            String authenticate = authenticate(adminUrl);
+            URL obj = new URL("http://" + adminUrl + "/api/agents/" + agentId + "/dispatch-action");
+            HttpURLConnection con = (HttpURLConnection) obj.openConnection();
+            con.setRequestMethod("POST");
+            con.setRequestProperty("Authorization", "Bearer " + authenticate);
+
+            con.setDoOutput(true);
+            DataOutputStream wr = new DataOutputStream(con.getOutputStream());
+
+            //fixme  json hardcode :)
+            wr.writeBytes("{\n" +
+                    "    \"type\": \"" + action + "\",\n" +
+                    "    \"payload\": {\n" +
+                    "        \"sessionId\": \"" + sessionId + "\"\n" +
+                    "    }\n" +
+                    "}");
+            wr.flush();
+            wr.close();
+            System.out.println(con.getResponseCode());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static String authenticate(String adminUrl) throws IOException {
+        URL obj = new URL("http://" + adminUrl + "/api/login");
+        HttpURLConnection con = (HttpURLConnection) obj.openConnection();
+        con.setRequestMethod("POST");
+        con.setDoOutput(true);
+        DataOutputStream wr = new DataOutputStream(con.getOutputStream());
+        wr.flush();
+        wr.close();
+        String authorization = con.getHeaderField("Authorization");
+        System.out.println(authorization);
+        return authorization;
     }
 }

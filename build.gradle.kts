@@ -30,6 +30,7 @@ tasks {
         manifest {
             attributes(mapOf(
                     "PreMain-Class" to "com.epam.drill.DrillCoverageTestAgent",
+                    "Can-Retransform-Classes" to "true",
                     "Boot-Class-Path" to "runtime.jar"))
         }
 
@@ -43,7 +44,7 @@ tasks {
 
     named<Test>("test") {
         dependsOn(jar)
-        setJvmArgs(listOf("-javaagent:${jar.get().archivePath}=autoTestScope"))
+        setJvmArgs(listOf("-javaagent:${jar.get().archivePath}=sessionId=autoTestScope,adminUrl=localhost:8090,agentId=Igor_KuzminykhAgent"))
         useJUnitPlatform()
         testLogging {
             events("passed", "skipped", "failed")
