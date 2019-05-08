@@ -20,6 +20,7 @@ import java.util.logging.Logger;
 @SuppressWarnings("Convert2Lambda")
 public class DrillCoverageTestAgent {
     private static Logger log = Logger.getLogger("debug");
+
     public static void premain(String args, Instrumentation instrumentation) {
         HashMap<String, String> paramMap = parseParams(args);
         String sessionId = paramMap.get("sessionId");
@@ -35,16 +36,20 @@ public class DrillCoverageTestAgent {
                 if (className != null) {
                     try {
                         if (className.equals("java/net/SocketOutputStream")) {
-                            log.info("SOOCKETT!!!!!!!!!!____________________");
-                            CtClass cc = ClassPool.getDefault().get(className.replace("/", "."));
-                            CtMethod filter = cc.getMethod("write", "([BII)V");
-                            if (filter != null) {
-                                filter.insertBefore("byte[] pr = com.epam.drill.GlobalSpy.self().modifyRequestBytes($1,$3);\n" +
-                                        "$1 = pr;\n" +
-                                        "$3 = com.epam.drill.GlobalSpy.self().calculateLength($3);\n"
-                                );
-                                return cc.toBytecode();
-                            } else return null;
+                            try {
+                                CtClass cc = ClassPool.getDefault().get(className.replace("/", "."));
+                                CtMethod filter = cc.getMethod("write", "([BII)V");
+                                if (filter != null) {
+                                    filter.insertBefore("byte[] pr = com.epam.drill.GlobalSpy.self().modifyRequestBytes($1,$3);\n" +
+                                            "$1 = pr;\n" +
+                                            "$3 = com.epam.drill.GlobalSpy.self().calculateLength($3);\n"
+                                    );
+                                    return cc.toBytecode();
+                                } else return null;
+                            } catch (Throwable ex) {
+                                ex.printStackTrace();
+                                return null;
+                            }
                         } else if (loader != null) {
                             ClassPool cp = ClassPool.getDefault();
                             cp.appendClassPath(new LoaderClassPath(loader));
