@@ -15,9 +15,11 @@ import java.net.URL;
 import java.security.ProtectionDomain;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.logging.Logger;
 
 @SuppressWarnings("Convert2Lambda")
 public class DrillCoverageTestAgent {
+    private static Logger log = Logger.getLogger("debug");
     public static void premain(String args, Instrumentation instrumentation) {
         HashMap<String, String> paramMap = parseParams(args);
         String sessionId = paramMap.get("sessionId");
@@ -33,6 +35,7 @@ public class DrillCoverageTestAgent {
                 if (className != null) {
                     try {
                         if (className.equals("java/net/SocketOutputStream")) {
+                            log.info("SOOCKETT!!!!!!!!!!____________________");
                             CtClass cc = ClassPool.getDefault().get(className.replace("/", "."));
                             CtMethod filter = cc.getMethod("write", "([BII)V");
                             if (filter != null) {
@@ -59,6 +62,7 @@ public class DrillCoverageTestAgent {
 
                             if (!ctMethods.isEmpty()) {
                                 for (CtMethod m : ctMethods) {
+                                    log.info(className+": instrumented");
                                     m.insertBefore("com.epam.drill.GlobalSpy.self().setTestName(\"" + m.getName() + "\");");
                                 }
                                 System.out.println("_____________" + className);
