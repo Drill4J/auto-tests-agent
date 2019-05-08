@@ -62,7 +62,6 @@ public class DrillCoverageTestAgent {
 
                             if (!ctMethods.isEmpty()) {
                                 for (CtMethod m : ctMethods) {
-                                    log.info(className+": instrumented");
                                     m.insertBefore("com.epam.drill.GlobalSpy.self().setTestName(\"" + m.getName() + "\");");
                                 }
                                 System.out.println("_____________" + className);

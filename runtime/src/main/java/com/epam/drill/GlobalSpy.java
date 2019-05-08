@@ -1,7 +1,10 @@
 package com.epam.drill;
 
+import java.util.logging.Logger;
+
 @SuppressWarnings("ALL")
 public class GlobalSpy {
+    private static Logger log = Logger.getLogger("WTF");
     private static GlobalSpy inst = new GlobalSpy();
     private String drillSession;
 
@@ -27,11 +30,14 @@ public class GlobalSpy {
     }
 
     public byte[] modifyRequestBytes(byte[] rawRequestBytes, int len) {
+        log.info("yes");
         if (hasTestName()) {
+
             String rawRequest = new String(rawRequestBytes);
             if (isHttpRequest(rawRequest)) {
                 String requestLine = generateSpyHeaders();
                 String s = rawRequest.replaceFirst("\n", "\n" + requestLine + "\n");
+                log.info("yes!!!!");
                 return s.getBytes();
             } else return rawRequestBytes;
         } else return rawRequestBytes;
