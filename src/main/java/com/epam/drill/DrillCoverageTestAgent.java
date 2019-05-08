@@ -1,5 +1,6 @@
 package com.epam.drill;
 
+import com.sun.security.ntlm.Server;
 import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.CtMethod;
@@ -15,6 +16,7 @@ import java.net.URL;
 import java.security.ProtectionDomain;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 @SuppressWarnings("Convert2Lambda")
@@ -47,6 +49,7 @@ public class DrillCoverageTestAgent {
                                     return cc.toBytecode();
                                 } else return null;
                             } catch (Throwable ex) {
+                                log.log(Level.SEVERE, "xx", ex);
                                 ex.printStackTrace();
                                 return null;
                             }
