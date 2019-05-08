@@ -1,6 +1,5 @@
 package com.epam.drill;
 
-import com.sun.security.ntlm.Server;
 import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.CtMethod;
