@@ -123,7 +123,7 @@ public class DrillCoverageTestAgent {
     private static void sendAction(String agentId, String action, String sessionId, String adminUrl) {
         try {
             String authenticate = authenticate(adminUrl);
-            URL obj = new URL("http://" + adminUrl + "/api/agents/" + agentId + "/dispatch-action");
+            URL obj = new URL("http://" + adminUrl + "/api/agents/" + agentId + "/coverage/dispatch-action");
             HttpURLConnection con = (HttpURLConnection) obj.openConnection();
             con.setRequestMethod("POST");
             con.setRequestProperty("Authorization", "Bearer " + authenticate);
