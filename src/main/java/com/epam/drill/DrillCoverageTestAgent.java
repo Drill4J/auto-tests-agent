@@ -1,13 +1,22 @@
 package com.epam.drill;
 
+import com.epam.drill.actions.StartAgentSession;
+import com.epam.drill.actions.StartPayload;
+import com.epam.drill.actions.StartSession;
+import com.epam.drill.actions.StopPayload;
+import com.epam.drill.actions.StopSession;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.CtMethod;
 import javassist.LoaderClassPath;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.Instrumentation;
 import java.net.HttpURLConnection;
@@ -21,15 +30,12 @@ import java.util.logging.Logger;
 @SuppressWarnings("Convert2Lambda")
 public class DrillCoverageTestAgent {
     private static Logger log = Logger.getLogger("debug");
+    private static String sessionId;
 
     public static void premain(String args, Instrumentation instrumentation) {
         HashMap<String, String> paramMap = parseParams(args);
-        String sessionId = paramMap.get("sessionId");
         String adminUrl = paramMap.get("adminUrl");
         String agentId = paramMap.get("agentId");
-
-        GlobalSpy.self().setSessionId(sessionId);
-
 
         instrumentation.addTransformer(new ClassFileTransformer() {
             @Override
@@ -84,14 +90,13 @@ public class DrillCoverageTestAgent {
             }
         });
 
-        sendAction(agentId, "START", sessionId, adminUrl);
+        sendAction(agentId, "START", adminUrl);
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
             @Override
             public void run() {
-                sendAction(agentId, "STOP", sessionId, adminUrl);
+                sendAction(agentId, "STOP", adminUrl);
             }
         }));
-
     }
 
     @NotNull
@@ -116,11 +121,11 @@ public class DrillCoverageTestAgent {
     }
 
     private static void validateParamsGroups(String[] paramGroups) {
-        if (paramGroups.length < 3)
-            throw new IllegalArgumentException("Agent should have 3 parameters. SessionId, AdminUrl and AgentName");
+        if (paramGroups.length < 2)
+            throw new IllegalArgumentException("Agent should have 2 parameters. AdminUrl and AgentName");
     }
 
-    private static void sendAction(String agentId, String action, String sessionId, String adminUrl) {
+    private static void sendAction(String agentId, String action, String adminUrl) {
         try {
             String authenticate = authenticate(adminUrl);
             URL obj = new URL("http://" + adminUrl + "/api/agents/" + agentId + "/coverage/dispatch-action");
@@ -131,16 +136,37 @@ public class DrillCoverageTestAgent {
             con.setDoOutput(true);
             DataOutputStream wr = new DataOutputStream(con.getOutputStream());
 
-            //fixme  json hardcode :)
-            wr.writeBytes("{\n" +
-                    "    \"type\": \"" + action + "\",\n" +
-                    "    \"payload\": {\n" +
-                    "        \"sessionId\": \"" + sessionId + "\"\n" +
-                    "    }\n" +
-                    "}");
-            wr.flush();
-            wr.close();
-            System.out.println(con.getResponseCode());
+            switch (action) {
+                case "START":
+                    StartSession startSession = new StartSession(action, new StartPayload("AUTO"));
+                    Gson gsonStart = new GsonBuilder().create();
+                    String jsonStart = gsonStart.toJson(startSession);
+                    wr.writeBytes(jsonStart);
+                    wr.flush();
+                    wr.close();
+                    System.out.println(con.getResponseCode());
+                    BufferedReader in = new BufferedReader(
+                            new InputStreamReader(con.getInputStream()));
+                    String inputLine;
+                    StringBuilder response = new StringBuilder();
+                    while ((inputLine = in.readLine()) != null) {
+                        response.append(inputLine);
+                    }
+                    in.close();
+                    StartAgentSession startAgentSession = new Gson().fromJson(response.toString(), StartAgentSession.class);
+                    sessionId = startAgentSession.getPayload().getSessionId();
+                    GlobalSpy.self().setSessionId(sessionId);
+                    break;
+                case "STOP":
+                    StopSession stopSession = new StopSession(action, new StopPayload(sessionId));
+                    Gson gsonStop = new GsonBuilder().setPrettyPrinting().create();
+                    String jsonStop = gsonStop.toJson(stopSession);
+                    wr.writeBytes(jsonStop);
+                    wr.flush();
+                    wr.close();
+                    System.out.println(con.getResponseCode());
+                    break;
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }

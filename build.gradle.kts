@@ -18,6 +18,7 @@ dependencies {
     implementation(project(":runtime"))
     implementation(kotlin("stdlib-jdk8"))
     testImplementation("org.junit.jupiter:junit-jupiter:5.4.2")
+    compile("com.google.code.gson:gson:2.8.5")
 }
 
 
@@ -44,7 +45,7 @@ tasks {
 
     named<Test>("test") {
         dependsOn(jar)
-        setJvmArgs(listOf("-javaagent:${jar.get().archivePath}=sessionId=autoTestScope,adminUrl=localhost:8090,agentId=Igor_KuzminykhAgent"))
+        setJvmArgs(listOf("-javaagent:${jar.get().archivePath}=adminUrl=localhost:8090,agentId=Agent1"))
         useJUnitPlatform()
         testLogging {
             events("passed", "skipped", "failed")
