@@ -1,0 +1,19 @@
+pipeline:
+
+  build:
+    image: gradle:5.5.1-jdk8
+    environment:
+    commands:
+      - gradle build
+
+  publish:
+    image: plugins/github-release
+      settings:
+        api_key:
+          from_secret: sx
+        files:
+          - libs/*
+        checksum:
+          - md5
+      when:
+        event: tag
