@@ -3,10 +3,20 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     kotlin("jvm") version "1.3.30"
     java
+    distribution
 }
 
 group = "com.epam"
 version = ""
+
+distributions {
+    named<Distribution>("main") {
+        baseName = "auto-test-agent"
+        contents {
+            from("build/libs")
+        }
+    }
+}
 
 repositories {
     mavenCentral()

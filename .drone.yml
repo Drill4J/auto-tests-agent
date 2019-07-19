@@ -4,21 +4,13 @@ pipeline:
     image: gradle:5.5.1-jdk8
     environment:
     commands:
-      - gradle build
+      - gradle jar distZip
   publish:
     image: plugins/github-release
     files:
-      - build/libs/*
+      - build/distributions/*
     checksum:
       - sha256
     secrets: [github_token]
-#    image: plugins/github-release
-#    secrets: [github_token]
-#    settings:
-#      api_key:
-#        from_secret: github_token
-#      files: runtime.jar
-#      checksum:
-#        - sha256
     when:
       event: tag
