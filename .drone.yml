@@ -8,7 +8,7 @@ pipeline:
   publish:
     image: plugins/github-release
     files:
-      - runtime.jar
+      - libs/*
     checksum:
       - sha256
     secrets: [github_token]
