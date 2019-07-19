@@ -8,7 +8,7 @@ pipeline:
   publish:
     image: plugins/github-release
     files:
-      - libs/*
+      - libs/auto-tests-agent.jar
     checksum:
       - sha256
     secrets: [github_token]
