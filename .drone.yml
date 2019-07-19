@@ -7,11 +7,18 @@ pipeline:
       - gradle build
   publish:
     image: plugins/github-release
+    files:
+      - runtime.jar
+    checksum:
+      - sha256
     secrets: [github_token]
-    settings:
-      api_key:
-        from_secret: github_token
-      files:
-        - src/*
+#    image: plugins/github-release
+#    secrets: [github_token]
+#    settings:
+#      api_key:
+#        from_secret: github_token
+#      files: runtime.jar
+#      checksum:
+#        - sha256
     when:
       event: tag
