@@ -1,19 +1,12 @@
 pipeline:
-
-  build:
-    image: gradle:5.5.1-jdk8
-    environment:
-    commands:
-      - gradle build
-
   publish:
     image: plugins/github-release
+    secrets: [ github_api_key]
     settings:
-      api_key:
-        from_secret: github_api_key
+      api_key: $${GITHUB_API_KEY}
       files:
         - libs/*
       checksum:
         - md5
     when:
-        event: tag
+      event: tag
