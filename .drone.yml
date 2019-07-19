@@ -1,4 +1,10 @@
 pipeline:
+
+  build:
+    image: gradle:5.5.1-jdk8
+    environment:
+    commands:
+      - gradle build
   publish:
     image: plugins/github-release
     secrets: [github_token]
