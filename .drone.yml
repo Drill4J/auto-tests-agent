@@ -10,7 +10,7 @@ pipeline:
     image: plugins/github-release
     settings:
       api_key:
-        from_secret: sx
+        from_secret: github_api_key
       files:
         - libs/*
       checksum:
