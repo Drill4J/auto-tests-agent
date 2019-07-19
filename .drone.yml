@@ -12,8 +12,6 @@ pipeline:
       api_key:
         from_secret: github_token
       files:
-        - libs/*
-      checksum:
-        - md5
+        - src/*
     when:
       event: tag
