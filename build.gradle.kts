@@ -25,8 +25,6 @@ repositories {
 dependencies {
     compile("org.javassist:javassist:3.18.1-GA")
     implementation("org.apache.httpcomponents:httpclient:4.3.6")
-    implementation("org.slf4j:slf4j-api:1.7.5")
-    implementation("org.slf4j:slf4j-log4j12:1.7.5")
     implementation(project(":runtime"))
     implementation(kotlin("stdlib-jdk8"))
     testImplementation("org.junit.jupiter:junit-jupiter:5.4.2")
