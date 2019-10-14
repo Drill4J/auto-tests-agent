@@ -31,11 +31,13 @@ import java.util.logging.Logger;
 public class DrillCoverageTestAgent {
     private static Logger log = Logger.getLogger("debug");
     private static String sessionId;
+    private static String pluginId;
 
     public static void premain(String args, Instrumentation instrumentation) {
         HashMap<String, String> paramMap = parseParams(args);
         String adminUrl = paramMap.get("adminUrl");
         String agentId = paramMap.get("agentId");
+        pluginId = paramMap.get("pluginId");
 
         instrumentation.addTransformer(new ClassFileTransformer() {
             @Override
@@ -128,7 +130,7 @@ public class DrillCoverageTestAgent {
     private static void sendAction(String agentId, String action, String adminUrl) {
         try {
             String authenticate = authenticate(adminUrl);
-            URL obj = new URL("http://" + adminUrl + "/api/agents/" + agentId + "/coverage/dispatch-action");
+            URL obj = new URL("http://" + adminUrl + "/api/agents/" + agentId + "/" + pluginId + "/dispatch-action");
             HttpURLConnection con = (HttpURLConnection) obj.openConnection();
             con.setRequestMethod("POST");
             con.setRequestProperty("Authorization", "Bearer " + authenticate);
