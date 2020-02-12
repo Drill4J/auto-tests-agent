@@ -1,9 +1,9 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "1.3.30"
+    kotlin("jvm") version "1.3.60"
     java
     distribution
+    id("com.github.johnrengelman.shadow") version "5.2.0"
 }
 
 group = "com.epam"
@@ -32,7 +32,7 @@ dependencies {
 }
 
 
-tasks.withType<KotlinCompile> {
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
     kotlinOptions.jvmTarget = "1.8"
 }
 
@@ -51,11 +51,13 @@ tasks {
             }
         })
     }
-
+    named<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>("shadowJar"){
+        archiveFileName.set("auto-tests-agent.jar")
+    }
 
     named<Test>("test") {
         dependsOn(jar)
-        setJvmArgs(listOf("-javaagent:${jar.get().archivePath}=adminUrl=localhost:8090,agentId=Agent1"))
+        setJvmArgs(listOf("-javaagent:${jar.get().archivePath}=adminUrl=localhost:8090,agentId=Petclinic,pluginId=test-to-code-mapping"))
         useJUnitPlatform()
         testLogging {
             events("passed", "skipped", "failed")

@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.Instrumentation;
+import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.security.ProtectionDomain;
@@ -37,6 +38,7 @@ public class DrillCoverageTestAgent {
         HashMap<String, String> paramMap = parseParams(args);
         String adminUrl = paramMap.get("adminUrl");
         String agentId = paramMap.get("agentId");
+        String serviceGroup = paramMap.get("serviceGroupId");
         pluginId = paramMap.get("pluginId");
 
         instrumentation.addTransformer(new ClassFileTransformer() {
@@ -92,11 +94,11 @@ public class DrillCoverageTestAgent {
             }
         });
 
-        sendAction(agentId, "START", adminUrl);
+        sendAction(agentId, "START", adminUrl, serviceGroup);
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
             @Override
             public void run() {
-                sendAction(agentId, "STOP", adminUrl);
+                sendAction(agentId, "STOP", adminUrl, serviceGroup);
             }
         }));
     }
@@ -127,10 +129,15 @@ public class DrillCoverageTestAgent {
             throw new IllegalArgumentException("Agent should have 2 parameters. AdminUrl and AgentName");
     }
 
-    private static void sendAction(String agentId, String action, String adminUrl) {
+    private static void sendAction(String agentId, String action, String adminUrl, String serviceGroupId) {
         try {
             String authenticate = authenticate(adminUrl);
-            URL obj = new URL("http://" + adminUrl + "/api/agents/" + agentId + "/" + pluginId + "/dispatch-action");
+            URL obj;
+            if (serviceGroupId == null || serviceGroupId.equals("null")) {
+                obj = new URL("http://" + adminUrl + "/api/agents/" + agentId + "/" + pluginId + "/dispatch-action");
+            } else {
+                obj = new URL("http://" + adminUrl + "/api/service-group/" + serviceGroupId + "/plugin/" + pluginId + "/dispatch-action");
+            }
             HttpURLConnection con = (HttpURLConnection) obj.openConnection();
             con.setRequestMethod("POST");
             con.setRequestProperty("Authorization", "Bearer " + authenticate);
