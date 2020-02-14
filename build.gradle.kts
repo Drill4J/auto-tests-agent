@@ -1,4 +1,3 @@
-
 plugins {
     kotlin("jvm") version "1.3.60"
     java
@@ -51,7 +50,7 @@ tasks {
             }
         })
     }
-    named<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>("shadowJar"){
+    named<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>("shadowJar") {
         archiveFileName.set("auto-tests-agent.jar")
     }
 

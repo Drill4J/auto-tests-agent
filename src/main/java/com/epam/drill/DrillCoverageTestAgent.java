@@ -3,10 +3,12 @@ package com.epam.drill;
 import com.epam.drill.actions.StartAgentSession;
 import com.epam.drill.actions.StartPayload;
 import com.epam.drill.actions.StartSession;
+import com.epam.drill.actions.StatusResponse;
 import com.epam.drill.actions.StopPayload;
 import com.epam.drill.actions.StopSession;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.CtMethod;
@@ -25,6 +27,7 @@ import java.net.URL;
 import java.security.ProtectionDomain;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -133,7 +136,8 @@ public class DrillCoverageTestAgent {
         try {
             String authenticate = authenticate(adminUrl);
             URL obj;
-            if (serviceGroupId == null || serviceGroupId.equals("null")) {
+            boolean isAgent = serviceGroupId == null || serviceGroupId.equals("null");
+            if (isAgent) {
                 obj = new URL("http://" + adminUrl + "/api/agents/" + agentId + "/" + pluginId + "/dispatch-action");
             } else {
                 obj = new URL("http://" + adminUrl + "/api/service-group/" + serviceGroupId + "/plugin/" + pluginId + "/dispatch-action");
@@ -162,8 +166,7 @@ public class DrillCoverageTestAgent {
                         response.append(inputLine);
                     }
                     in.close();
-                    StartAgentSession startAgentSession = new Gson().fromJson(response.toString(), StartAgentSession.class);
-                    sessionId = startAgentSession.getPayload().getSessionId();
+                    sessionId = getSessionId(response.toString(), isAgent);
                     GlobalSpy.self().setSessionId(sessionId);
                     break;
                 case "STOP":
@@ -179,6 +182,19 @@ public class DrillCoverageTestAgent {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public static String getSessionId(String response, boolean isAgent) {
+        StatusResponse statusResponse;
+        if (isAgent)
+            statusResponse = new Gson().fromJson(response, StatusResponse.class);
+        else {
+            Type statusResponseListType = new TypeToken<ArrayList<StatusResponse>>() {}.getType();
+            List<StatusResponse> listStatusResponse = new Gson().fromJson(response, statusResponseListType);
+            statusResponse = listStatusResponse.get(0);
+        }
+        StartAgentSession startAgentSession = statusResponse.getData();
+        return startAgentSession.getPayload().getSessionId();
     }
 
     private static String authenticate(String adminUrl) throws IOException {

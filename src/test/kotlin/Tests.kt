@@ -68,4 +68,18 @@ class Tests {
         val response = client.execute(request)
         assertEquals(methodName, response.getHeaders(headerName)[0].value)
     }
+
+    @Test
+    fun `should take sessionId for one agent`() {
+        val sessionId = "6c6ccb1c-c33f-4896-abe8-d53912ae5032"
+        val jsonResponseFromAdmin = "{\"code\": 200,\"data\":{\"payload\": {\"sessionId\": \"$sessionId\",\"startPayload\":{\"testType\": \"MANUAL\",\"sessionId\": \"6c6ccb1c-c33f-4896-abe8-d53912ae5032\"}}}}"
+        assertEquals(sessionId, DrillCoverageTestAgent.getSessionId(jsonResponseFromAdmin, true))
+    }
+
+    @Test
+    fun `should take sessionId for service group`() {
+        val sessionId = "6c6ccb1c-c33f-4896-abe8-d53912ae5032"
+        val jsonResponseFromAdmin = "[{\"code\": 200,\"data\":{\"payload\": {\"sessionId\": \"$sessionId\",\"startPayload\":{\"testType\": \"MANUAL\",\"sessionId\": \"6c6ccb1c-c33f-4896-abe8-d53912ae5032\"}}}}]"
+        assertEquals(sessionId, DrillCoverageTestAgent.getSessionId(jsonResponseFromAdmin, false))
+    }
 }
