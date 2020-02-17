@@ -22,12 +22,12 @@ repositories {
 }
 
 dependencies {
-    compile("org.javassist:javassist:3.18.1-GA")
-    implementation("org.apache.httpcomponents:httpclient:4.3.6")
     implementation(project(":runtime"))
     implementation(kotlin("stdlib-jdk8"))
+    implementation("org.javassist:javassist:3.18.1-GA")
+    implementation("com.google.code.gson:gson:2.8.5")
+    implementation("org.apache.httpcomponents:httpclient:4.3.6")
     testImplementation("org.junit.jupiter:junit-jupiter:5.4.2")
-    compile("com.google.code.gson:gson:2.8.5")
 }
 
 
@@ -54,9 +54,14 @@ tasks {
         archiveFileName.set("auto-tests-agent.jar")
     }
 
-    named<Test>("test") {
+    test {
         dependsOn(jar)
-        setJvmArgs(listOf("-javaagent:${jar.get().archivePath}=adminUrl=localhost:8090,agentId=Petclinic,pluginId=test-to-code-mapping"))
+        val args = listOf(
+                "adminUrl" to "localhost:8090",
+                "agentId" to "Petclinic",
+                "pluginId" to "test2code"
+        ).joinToString(",") { "${it.first}=${it.second}" }
+        jvmArgs = listOf("-javaagent:${jar.get().archivePath}=$args")
         useJUnitPlatform()
         testLogging {
             events("passed", "skipped", "failed")
