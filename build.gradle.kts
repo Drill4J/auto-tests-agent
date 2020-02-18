@@ -2,58 +2,52 @@ plugins {
     kotlin("jvm") version "1.3.60"
     java
     distribution
-    id("com.github.johnrengelman.shadow") version "5.2.0"
 }
 
 group = "com.epam"
 version = ""
 
-distributions {
-    named<Distribution>("main") {
-        baseName = "auto-test-agent"
-        contents {
-            from("build/libs")
-        }
-    }
-}
-
 repositories {
     mavenCentral()
 }
-
+val jarDep: Configuration by configurations.creating
+configurations {
+    implementation.get().extendsFrom(jarDep)
+}
 dependencies {
     implementation(project(":runtime"))
     implementation(kotlin("stdlib-jdk8"))
-    implementation("org.javassist:javassist:3.18.1-GA")
-    implementation("com.google.code.gson:gson:2.8.5")
-    implementation("org.apache.httpcomponents:httpclient:4.3.6")
+    jarDep("org.javassist:javassist:3.18.1-GA")
+    jarDep("com.google.code.gson:gson:2.8.5")
+    testImplementation("org.apache.httpcomponents:httpclient:4.3.6")
     testImplementation("org.junit.jupiter:junit-jupiter:5.4.2")
 }
 
-
-tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-    kotlinOptions.jvmTarget = "1.8"
-}
-
 tasks {
-    val jar = named<Jar>("jar") {
+    withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
+        kotlinOptions.jvmTarget = "1.8"
+    }
+    jar {
         manifest {
             attributes(mapOf(
                     "PreMain-Class" to "com.epam.drill.DrillCoverageTestAgent",
                     "Can-Retransform-Classes" to "true",
                     "Boot-Class-Path" to "runtime.jar"))
         }
-
         from(provider {
-            configurations["compile"].map {
+            jarDep.map {
                 if (it.isDirectory) it else zipTree(it)
             }
         })
     }
-    named<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>("shadowJar") {
-        archiveFileName.set("auto-tests-agent.jar")
+    distributions {
+        main {
+            distributionBaseName.set("auto-test-agent")
+            contents {
+                from("build/libs")
+            }
+        }
     }
-
     test {
         dependsOn(jar)
         val args = listOf(
@@ -61,7 +55,7 @@ tasks {
                 "agentId" to "Petclinic",
                 "pluginId" to "test2code"
         ).joinToString(",") { "${it.first}=${it.second}" }
-        jvmArgs = listOf("-javaagent:${jar.get().archivePath}=$args")
+        jvmArgs = listOf("-javaagent:${jar.get().archiveFile.get()}=$args")
         useJUnitPlatform()
         testLogging {
             events("passed", "skipped", "failed")
