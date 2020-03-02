@@ -138,9 +138,9 @@ public class DrillCoverageTestAgent {
             URL obj;
             boolean isAgent = serviceGroupId == null || serviceGroupId.equals("null");
             if (isAgent) {
-                obj = new URL("http://" + adminUrl + "/api/agents/" + agentId + "/" + pluginId + "/dispatch-action");
+                obj = new URL("http://" + adminUrl + "/api/agents/" + agentId + "/plugins/" + pluginId + "/dispatch-action");
             } else {
-                obj = new URL("http://" + adminUrl + "/api/service-group/" + serviceGroupId + "/plugin/" + pluginId + "/dispatch-action");
+                obj = new URL("http://" + adminUrl + "/api/service-groups/" + serviceGroupId + "/plugins/" + pluginId + "/dispatch-action");
             }
             HttpURLConnection con = (HttpURLConnection) obj.openConnection();
             con.setRequestMethod("POST");
